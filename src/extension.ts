@@ -75,31 +75,122 @@ export function activate(context: vscode.ExtensionContext) {
     const config = vscode.workspace.getConfiguration("visubezier")
     const defaultEasing = config.get("defaulteasingfunction", "linear");
     const defaultDuration = config.get("defaultduration", "1s");
+    const defaultBackground = config.get("defaultbackground", "#2d2d30");
+    const defaultColor = config.get("defaultcolor", "#d7d7d7");
 
-    /* Returns code for the cubic-bezier preview (as a scalable SVG image) */
-    function getWebviewContent(easingFunction: string) {
-        return `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 320 100" style="enable-background:new 0 0 320 100;" width="320px" height="100px" xml:space="preserve">
+    interface Key2Ease {
+        [key: string]: string;
+    }
+
+    let keyword2easing: Key2Ease = {
+        'linear': '0,0,1,1',
+        'ease': '0.25,1,0.25,1',
+        'ease-in': '0.42,0,1,1',
+        'ease-out': '0,0,0.58,1',
+        'ease-in-out': '0.42,0,0.58,1'
+    };
+
+    /* Returns code for the cubic-bezier preview (as an SVG image) */
+    function getSvgOutput(easingFunction: string) {
+        const bg = defaultBackground;
+        const color = defaultColor;
+        const svgW = 480;
+        const svgH = 100;
+        const squareSize = 32;
+        const squareMargin = squareSize/2;
+        const animationSpanX = squareSize*10;
+        const animationOffsetX = animationSpanX - squareSize - squareMargin*2;
+        const curvePreviewBoxSize = svgH * .5;
+        const curvePreviewHandleRadius = curvePreviewBoxSize * .05;
+        const curvePreviewBoxOffsetX = animationSpanX + curvePreviewBoxSize / 2;
+        const curvePreviewBoxOffsetY = (svgH - curvePreviewBoxSize) / 2;
+
+        let curvePoints = keyword2easing[easingFunction] || easingFunction.replace('cubic-bezier(', ''); // Quick and dirty… sorry
+        let curve = curvePoints.split(',');
+        let factor = curvePreviewBoxSize;
+        let points = curve.map(n => parseFloat(n) * factor);
+        let curveX1 = points[0] + curvePreviewBoxOffsetX;
+        let curveY1 = factor - points[1] + curvePreviewBoxOffsetY;
+        let curveX2 = points[2] + curvePreviewBoxOffsetX;
+        let curveY2 = factor - points[3] + curvePreviewBoxOffsetY;
+        let curvePath = `M${curvePreviewBoxOffsetX},${curvePreviewBoxOffsetY + curvePreviewBoxSize} C${curveX1},${curveY1} ${curveX2},${curveY2} ${curvePreviewBoxOffsetX + curvePreviewBoxSize},${curvePreviewBoxOffsetY}`;
+        
+        let markup = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 ${svgW} ${svgH}" style="enable-background:new 0 0 ${svgW} ${svgH};" width="${svgW}px" height="${svgH}px" xml:space="preserve">
             <style type="text/css">
-                svg{background-color:#2d2d30;color:#d7d7d7;}
-                .st0{fill:none;stroke:currentColor;stroke-miterlimit:10;}
-                .st1{fill:currentColor;fill-rule:evenodd;clip-rule:evenodd;animation: anim ${defaultDuration} alternate infinite;}
-                .st2{fill:currentColor;font-family:'FiraCode','Courier New',monospace;font-size:12px;}
-                .st3{opacity:0.35;fill:none;stroke:currentColor;stroke-miterlimit:10;}
-                .default {animation-timing-function: ${defaultEasing};}
-                .custom {animation-timing-function: ${easingFunction};}
-                @keyframes anim { to { transform: translateX(256px); } }
+                svg {
+                    background-color: ${bg};
+                    color: ${color};
+                }
+                .st0 {
+                    fill: none;
+                    stroke: ${color};
+                    stroke-width: 2;
+                    stroke-miterlimit: 10;
+                }
+                .st1 {
+                    fill: ${color};
+                    fill-rule: evenodd;
+                    clip-rule: evenodd;
+                    alternate infinite;
+                }
+                .st2 {
+                    fill: ${color};
+                    font-family: 'FiraCode','Courier New',monospace;
+                    font-size: 14px;
+                }
+                .st3 {
+                    opacity: .35;
+                    fill: none;
+                    stroke: ${color};
+                    stroke-miterlimit: 10;
+                }
+                .anim {
+                    animation: anim ${defaultDuration} alternate infinite;
+                }
+                .default {
+                    animation-timing-function: ${defaultEasing};
+                }
+                .custom {
+                    animation-timing-function: ${easingFunction};
+                }
+                @keyframes anim {
+                    to { transform: translateX(${animationOffsetX}px); }
+                }        
             </style>
-            <line class="st3" x1="15.5" y1="0" x2="15.5" y2="100"/>
-            <line class="st3" x1="87.75" y1="0" x2="87.75" y2="100"/>
-            <line class="st3" x1="160" y1="0" x2="160" y2="100"/>
-            <line class="st3" x1="232.25" y1="0" x2="232.25" y2="100"/>
-            <line class="st3" x1="304.5" y1="0" x2="304.5" y2="100"/>
-            <line class="st0" x1="-0.5" y1="50.5" x2="319.5" y2="50.5"/>
+
+            <rect x="${curvePreviewBoxOffsetX}" y="${curvePreviewBoxOffsetY}" class="st3" width="${curvePreviewBoxSize}" height="${curvePreviewBoxSize}"/>
+
+            <line class="st3" x1="${curvePreviewBoxOffsetX}" x2="${curvePreviewBoxOffsetX + curvePreviewBoxSize}" y1="${curvePreviewBoxOffsetY + curvePreviewBoxSize*.25}" y2="${curvePreviewBoxOffsetY + curvePreviewBoxSize*.25}"/>
+            <line class="st3" x1="${curvePreviewBoxOffsetX}" x2="${curvePreviewBoxOffsetX + curvePreviewBoxSize}" y1="${curvePreviewBoxOffsetY + curvePreviewBoxSize*.5}" y2="${curvePreviewBoxOffsetY + curvePreviewBoxSize*.5}"/>
+            <line class="st3" x1="${curvePreviewBoxOffsetX}" x2="${curvePreviewBoxOffsetX + curvePreviewBoxSize}" y1="${curvePreviewBoxOffsetY + curvePreviewBoxSize*.75}" y2="${curvePreviewBoxOffsetY + curvePreviewBoxSize*.75}"/>
+
+            <line class="st3" x1="${curvePreviewBoxOffsetX + curvePreviewBoxSize*.25}" x2="${curvePreviewBoxOffsetX + curvePreviewBoxSize*.25}" y1="${curvePreviewBoxOffsetY}" y2="${curvePreviewBoxOffsetY + curvePreviewBoxSize}"/>
+            <line class="st3" x1="${curvePreviewBoxOffsetX + curvePreviewBoxSize*.5}" x2="${curvePreviewBoxOffsetX + curvePreviewBoxSize*.5}" y1="${curvePreviewBoxOffsetY}" y2="${curvePreviewBoxOffsetY + curvePreviewBoxSize}"/>
+            <line class="st3" x1="${curvePreviewBoxOffsetX + curvePreviewBoxSize*.75}" x2="${curvePreviewBoxOffsetX + curvePreviewBoxSize*.75}" y1="${curvePreviewBoxOffsetY}" y2="${curvePreviewBoxOffsetY + curvePreviewBoxSize}"/>
+            
+            <line class="st0" x1="${curvePreviewBoxOffsetX}" y1="${curvePreviewBoxOffsetY + curvePreviewBoxSize}" x2="${curveX1}" y2="${curveY1}"/>
+            <line class="st0" x1="${curveX2}" y1="${curveY2}" x2="${curvePreviewBoxOffsetX + curvePreviewBoxSize}" y2="${curvePreviewBoxOffsetY}"/>
+
+            <circle class="st1" cx="${curveX1}" cy="${curveY1}" r="${curvePreviewHandleRadius}"/>
+            <circle class="st1" cx="${curveX2}" cy="${curveY2}" r="${curvePreviewHandleRadius}"/>
+
+            <path class="st0" d="${curvePath}" />
+
+            <line class="st3" x1="${squareMargin}" y1="0" x2="${squareMargin}" y2="${svgH}"/>
+            <line class="st3" x1="${(animationSpanX - squareMargin)*.25}" y1="0" x2="${(animationSpanX - squareMargin)*.25}" y2="${svgH}"/>
+            <line class="st3" x1="${(animationSpanX - squareMargin)*.5}" y1="0" x2="${(animationSpanX - squareMargin)*.5}" y2="${svgH}"/>
+            <line class="st3" x1="${(animationSpanX - squareMargin)*.75}" y1="0" x2="${(animationSpanX - squareMargin)*.75}" y2="${svgH}"/>
+            <line class="st3" x1="${animationSpanX - squareMargin}" y1="0" x2="${animationSpanX - squareMargin}" y2="${svgH}"/>
+            <line class="st0" x1="0" y1="${svgH/2}" x2="${animationSpanX}" y2="${svgH/2}"/>
+
             <text transform="matrix(1 0 0 1 0 10)" class="st2 default">${defaultEasing}</text>
-            <rect x="16" y="15" class="st1 default" width="32" height="32"/>
+            <rect x="${squareMargin}" y="15" class="st1 anim default" width="${squareSize}" height="${squareSize}"/>
+
             <text transform="matrix(1 0 0 1 0 98)" class="st2 custom">${easingFunction}</text>
-            <rect x="16" y="54" class="st1 custom" width="32" height="32"/>
+            <rect x="${squareMargin}" y="54" class="st1 anim custom" width="${squareSize}" height="${squareSize}"/>
         </svg>`;
+
+        return markup;
     }
 
     function uriSvgOutput(svgContent: string, type: string = 'utf8') {
@@ -113,7 +204,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     const cubicBezierDecorationType = vscode.window.createTextEditorDecorationType({
-        cursor: 'crosshair'
+        textDecoration: 'underline'
     });
 
     let activeEditor = vscode.window.activeTextEditor;
@@ -152,7 +243,7 @@ export function activate(context: vscode.ExtensionContext) {
 		while (match = regEx.exec(text)) {
 			const startPos = activeEditor.document.positionAt(match.index);
             const endPos = activeEditor.document.positionAt(match.index + match[0].length);
-            var uri = '![](' + uriSvgOutput( getWebviewContent( match[0] ), 'base64' ) + ')';
+            var uri = '![](' + uriSvgOutput( getSvgOutput( match[0] ), 'base64' ) + ')';
 			const decoration = { range: new vscode.Range(startPos, endPos), hoverMessage: uri };
 			cubicBeziers.push(decoration);
 		}

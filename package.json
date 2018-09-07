@@ -2,7 +2,7 @@
     "name": "visubezier",
     "displayName": "VisuBezier",
     "description": "Provides a preview when hovering CSS easing functions in VS Code.",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "publisher": "chriskirknielsen",
     "icon": "visubezier.png",
     "engines": {
@@ -38,6 +38,16 @@
                 "visubezier.defaultduration": {
                     "default": "1s",
                     "description": "Default duration for each comparison",
+                    "type": "string"
+                },
+                "visubezier.defaultbackground": {
+                    "default": "#2d2d30",
+                    "description": "Default background color for the preview",
+                    "type": "string"
+                },
+                "visubezier.defaultcolor": {
+                    "default": "#d7d7d7",
+                    "description": "Default foreground color for the preview",
                     "type": "string"
                 }
             }
