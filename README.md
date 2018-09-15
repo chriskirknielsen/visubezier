@@ -24,6 +24,10 @@ This extension has a few settings:
 
 ## Release Notes
 
+### 1.1.1
+
+Change the detection RegExp to be less greedy and not output false positives.
+
 ### 1.1.0
 
 Add a preview of the Bézier curve next to the animation.

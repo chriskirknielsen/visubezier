@@ -91,7 +91,7 @@ export function activate(context: vscode.ExtensionContext) {
     };
 
     /* Returns code for the cubic-bezier preview (as an SVG image) */
-    function getSvgOutput(easingFunction: string) {
+    function getSvgOutput(easingFunctionInput: string) {
         const bg = defaultBackground;
         const color = defaultColor;
         const svgW = 480;
@@ -105,7 +105,8 @@ export function activate(context: vscode.ExtensionContext) {
         const curvePreviewBoxOffsetX = animationSpanX + curvePreviewBoxSize / 2;
         const curvePreviewBoxOffsetY = (svgH - curvePreviewBoxSize) / 2;
 
-        let curvePoints = keyword2easing[easingFunction] || easingFunction.replace('cubic-bezier(', ''); // Quick and dirty… sorry
+        let easingFunction = easingFunctionInput.toLowerCase().trim().replace(';','').replace(':',''); // Quick and dirty… sorry
+        let curvePoints = keyword2easing[easingFunction] || easingFunction.replace('cubic-bezier(', ''); // Sorryyyyy
         let curve = curvePoints.split(',');
         let factor = curvePreviewBoxSize;
         let points = curve.map(n => parseFloat(n) * factor);
@@ -236,14 +237,16 @@ export function activate(context: vscode.ExtensionContext) {
 		if (!activeEditor) {
 			return;
 		}
-		const regEx = /((ease(?:-in)?(?:-out)?)|(cubic-bezier\(\s*(-?(?:\d?(?:\.\d+))|\d)\s*,\s*(-?(?:\d?(?:\.\d+))|\d)\s*,\s*(-?(?:\d?(?:\.\d+))|\d)\s*,\s*(-?(?:\d?(?:\.\d+))|\d)\s*\)))/gim; // Matches any easing-function
+		const regEx = /(\:|\s)((ease(?:-in)?(?:-out)?)|(cubic-bezier\(\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*,\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*\)))(\s|;|)?/gi; // Matches any easing-function
 		const text = activeEditor.document.getText();
 		const cubicBeziers: vscode.DecorationOptions[] = [];
 		let match;
 		while (match = regEx.exec(text)) {
-			const startPos = activeEditor.document.positionAt(match.index);
-            const endPos = activeEditor.document.positionAt(match.index + match[0].length);
-            var uri = '![](' + uriSvgOutput( getSvgOutput( match[0] ), 'base64' ) + ')';
+            console.log(match);
+            const offsetStartPos = match.index + match[1].length;
+			const startPos = activeEditor.document.positionAt(offsetStartPos);
+            const endPos = activeEditor.document.positionAt(offsetStartPos + match[2].length);
+            var uri = '![](' + uriSvgOutput( getSvgOutput( match[2].toLowerCase() ), 'base64' ) + ')';
 			const decoration = { range: new vscode.Range(startPos, endPos), hoverMessage: uri };
 			cubicBeziers.push(decoration);
 		}

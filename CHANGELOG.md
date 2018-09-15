@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to VisuBezier will be documented in this file.
 
+## [1.1.1] - 2018-09-15
+### Changed
+- Improve the regular expression to be less greedy and not detect words like "release".
+
 ## [1.1.0] - 2018-09-07
 ### Added
 - Add a preview of the Bézier curve next to the animation.
