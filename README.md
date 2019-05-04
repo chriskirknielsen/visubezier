@@ -6,7 +6,7 @@ Provides a preview when hovering CSS easing functions in [VS Code](https://githu
 
 Hover over any CSS easing function to get a preview of the animation, comparing it to a `linear` easing (default).
 
-![Hover to preview](preview.gif)
+![Hover to preview](https://raw.githubusercontent.com/chriskirknielsen/visubezier/master/preview.gif)
 
 ## Extension Settings
 
@@ -23,6 +23,10 @@ This extension has a few settings:
 * Points with negative values can cause the animation to fall out of the preview area.
 
 ## Release Notes
+
+### 1.1.2
+
+Patch the security vulnerabilities for `tar` and `node.extend`.
 
 ### 1.1.1
 
