@@ -1,7 +1,13 @@
 # Changelog
 All notable changes to VisuBezier will be documented in this file.
 
-## [1.1.1] - 2019-05-03
+## [1.2.0] - 2020-02-17
+### Changed
+- Updated icon
+- Updated extension name
+- Patch the security vulnerabilities for `braces`, `js-yaml` and `fstream`.
+
+## [1.1.2] - 2019-05-03
 ### Changed
 - Patch the security vulnerabilities for `tar` and `node.extend`.
 

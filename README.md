@@ -21,8 +21,13 @@ This extension has a few settings:
 
 * `cubic-bezier` containing any values other than numbers are currently ignored (e.g. `calc()` or `var()`).
 * Points with negative values can cause the animation to fall out of the preview area.
+* `steps()` function not currently supported.
 
 ## Release Notes
+
+### 1.2.0
+- Updated icon and extension name
+- Patch the security vulnerabilities for `braces`, `js-yaml` and `fstream`.
 
 ### 1.1.2
 
