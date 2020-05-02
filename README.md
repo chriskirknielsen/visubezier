@@ -25,6 +25,9 @@ This extension has a few settings:
 
 ## Release Notes
 
+### 1.3.0
+- Fixed some greed in the detection regular expression.
+
 ### 1.2.0
 - Updated icon and extension name
 - Patch the security vulnerabilities for `braces`, `js-yaml` and `fstream`.

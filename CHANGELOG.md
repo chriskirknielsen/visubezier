@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to VisuBezier will be documented in this file.
 
+## [1.3.0] - 2020-05-02
+### Changed
+- Fixed some greed in the detection regular expression.
+
 ## [1.2.0] - 2020-02-17
 ### Changed
 - Updated icon
