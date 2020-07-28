@@ -84,7 +84,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     let keyword2easing: Key2Ease = {
         'linear': '0,0,1,1',
-        'ease': '0.25,1,0.25,1',
+        'ease': '0.25,0.1,0.25,1',
         'ease-in': '0.42,0,1,1',
         'ease-out': '0,0,0.58,1',
         'ease-in-out': '0.42,0,0.58,1'
@@ -237,12 +237,12 @@ export function activate(context: vscode.ExtensionContext) {
 		if (!activeEditor) {
 			return;
 		}
-		const regEx = /(\:|\s)((ease(?:-in)?(?:-out)?)|(cubic-bezier\(\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*,\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*\)))(\s|;)+/gi; // Matches any easing-function
-		const text = activeEditor.document.getText();
+		const regEx = /(\:|\s)((ease(?:-in)?(?:-out)?)|(cubic-bezier\(\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*,\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*\)))(\s|,|;)/gi; // Matches any easing-function
+        const text = activeEditor.document.getText();
 		const cubicBeziers: vscode.DecorationOptions[] = [];
 		let match;
 		while (match = regEx.exec(text)) {
-            console.log(match);
+            // console.log(match);
             const offsetStartPos = match.index + match[1].length;
 			const startPos = activeEditor.document.positionAt(offsetStartPos);
             const endPos = activeEditor.document.positionAt(offsetStartPos + match[2].length);
