@@ -2,7 +2,7 @@
     "name": "visubezier",
     "displayName": "VisuBezier (CSS Easing Preview)",
     "description": "Provides a preview when hovering CSS easing functions in VS Code.",
-    "version": "1.3.3",
+    "version": "1.3.4",
     "publisher": "chriskirknielsen",
     "icon": "visubezier.png",
     "engines": {

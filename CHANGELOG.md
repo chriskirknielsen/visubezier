@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to VisuBezier will be documented in this file.
 
-## [1.3.3] - 2020-07-27
+## [1.3.4] - 2020-07-27
 ### Added
 - Added an icon before the timing functions that can be previewed.
 

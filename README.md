@@ -25,8 +25,8 @@ This extension has a few settings:
 
 ## Release Notes
 
-### 1.3.3
-- Added an icon before the timing functions that can be previewed.
+### 1.3.4
+- Added an icon before the timing functions that can be previewed. Updated the ignored files.
 
 ### 1.3.2
 - Fixed the `ease` mapping and allow to detect more than one function per declaration.
