@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to VisuBezier will be documented in this file.
 
+## [1.3.3] - 2020-07-27
+### Added
+- Added an icon before the timing functions that can be previewed.
+
 ## [1.3.2] - 2020-07-27
 ### Changed
 - Fixed the `ease` mapping and allow to detect more than one function per declaration.

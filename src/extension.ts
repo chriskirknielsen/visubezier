@@ -1,5 +1,6 @@
 'use strict';
 import * as vscode from 'vscode';
+const path = require('path');
 
 export function activate(context: vscode.ExtensionContext) {
     const Base64 = { // Source: http://www.webtoolkit.info/javascript-base64.html
@@ -90,7 +91,7 @@ export function activate(context: vscode.ExtensionContext) {
         'ease-in-out': '0.42,0,0.58,1'
     };
 
-    /* Returns code for the cubic-bezier preview (as an SVG image) */
+    /** Returns code for the cubic-bezier preview (as an SVG image). */
     function getSvgOutput(easingFunctionInput: string) {
         const bg = defaultBackground;
         const color = defaultColor;
@@ -194,6 +195,7 @@ export function activate(context: vscode.ExtensionContext) {
         return markup;
     }
 
+    /** Return the SVG formatted for URI use. */
     function uriSvgOutput(svgContent: string, type: string = 'utf8') {
         var input = svgContent.split("\n").map(i => i.trim()).join('');
 
@@ -205,7 +207,15 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     const cubicBezierDecorationType = vscode.window.createTextEditorDecorationType({
-        textDecoration: 'underline'
+        textDecoration: 'underline',
+        before: {
+            // contentText: '📈',
+            contentIconPath: path.join(context.extensionPath, "src/inline.svg"),
+            
+            height: '0.8em',
+            width: '1em',
+            margin: '0px 0.2em 0px 0px',
+        }
     });
 
     let activeEditor = vscode.window.activeTextEditor;
@@ -227,12 +237,15 @@ export function activate(context: vscode.ExtensionContext) {
 	}, null, context.subscriptions);
     
 	var timeout;
+    /** Throttle the decorators update. */
 	function triggerUpdateDecorations() {
 		if (timeout) {
 			clearTimeout(timeout);
 		}
 		timeout = setTimeout(updateDecorations, 500);
     }
+
+    /** Update the decorators for any of the supported easing keywords and timing functions. */
     function updateDecorations() {
 		if (!activeEditor) {
 			return;
