@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to VisuBezier will be documented in this file.
 
+## [1.3.5] - 2019-05-03
+### Changed
+- Patch the security vulnerabilities for `url-parse`.
+
 ## [1.3.4] - 2020-07-27
 ### Added
 - Added an icon before the timing functions that can be previewed.
