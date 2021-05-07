@@ -25,6 +25,9 @@ This extension has a few settings:
 
 ## Release Notes
 
+### 1.3.5
+- Patch the security vulnerabilities for `url-parse`.
+
 ### 1.3.4
 - Added an icon before the timing functions that can be previewed. Updated the ignored files.
 
@@ -42,17 +45,13 @@ This extension has a few settings:
 - Patch the security vulnerabilities for `braces`, `js-yaml` and `fstream`.
 
 ### 1.1.2
-
-Patch the security vulnerabilities for `tar` and `node.extend`.
+- Patch the security vulnerabilities for `tar` and `node.extend`.
 
 ### 1.1.1
-
-Change the detection RegExp to be less greedy and not output false positives.
+- Change the detection RegExp to be less greedy and not output false positives.
 
 ### 1.1.0
-
-Add a preview of the Bézier curve next to the animation.
+- Add a preview of the Bézier curve next to the animation.
 
 ### 1.0.0
-
-Initial release of VisuBezier. 🤘
+- Initial release of VisuBezier. 🤘
