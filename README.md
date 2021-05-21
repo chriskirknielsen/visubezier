@@ -17,13 +17,39 @@ This extension has a few settings:
 * `visubezier.defaultbackground`: Override the background color for the preview area (default: `#2d2d30`).
 * `visubezier.defaultcolor`: Override the foreground color for the preview elements (default: `#d7d7d7`).
 
+## Post-Install Sample
+
+Paste this sample into VS Code after installing to see it in action:
+
+```css
+button {
+    transition-timing-function: ease;
+    transition-timing-function: ease-in;
+    transition-timing-function: ease-out;
+    transition-timing-function: ease-in-out;
+    transition-timing-function: cubic-bezier(0.4, -.2, 0.42, 1.20);
+    transition-timing-function: steps(7);
+    transition-timing-function: steps(5, jump-none);
+    transition-timing-function: steps(8, jump-both);
+    transition-timing-function: steps(4, jump-start);
+    transition-timing-function: steps(2, jump-end);
+    transition-timing-function: step-start;
+    transition-timing-function: step-end;
+    transition-timing-function: ease, steps(3), cubic-bezier(1, 0, 0, 1);
+}
+```
+
 ## Known Issues
 
 * `cubic-bezier` containing any values other than numbers are currently ignored (e.g. `calc()` or `var()`).
 * Points with negative values can cause the animation to fall out of the preview area.
-* `steps()` function not currently supported.
 
 ## Release Notes
+
+### 1.4.0
+- Added support for `steps()` and `step-start`/`step-end` syntax.
+- Changed solid underline changed to a dotted underline.
+- Updated comments/typings.
 
 ### 1.3.5
 - Patch the security vulnerabilities for `url-parse`.

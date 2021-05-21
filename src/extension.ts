@@ -70,7 +70,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }
 
-    console.log('VisuBezier is now active');
+    // console.log('VisuBezier is now active');
 
     // Retrieve user config
     const config = vscode.workspace.getConfiguration("visubezier")
@@ -79,11 +79,64 @@ export function activate(context: vscode.ExtensionContext) {
     const defaultBackground = config.get("defaultbackground", "#2d2d30");
     const defaultColor = config.get("defaultcolor", "#d7d7d7");
 
+    // Define the SVG offset object, which contains the coordinates of the starting point for the easing curve/step visualiation
+    interface OffsetXY {
+        x: number;
+        y: number;
+    }
+
+    /**
+     * Draws the steps path.
+     * 
+     * @param {number} count The number of steps (non-null positive integer)
+     * @param {string} jumpterm The type of jump to be visualised
+     * @param {OffsetXY} offset The offset coordinates `x` and `y` for the SVG viewBox
+     * @param {number} size The length of a side of the square in which the easing function is painted
+     * 
+     * @return {string} The `d` attribute for an SVG <path/>
+     */
+    function getJumpPath(count: number, jumpterm: string, offset: OffsetXY, size: number): string {
+        // If there is a need to add or remove a half-step, flag it
+        const addHalfStep = (jumpterm === 'jump-both');
+        const removeHalfStep = (jumpterm === 'jump-none');
+
+        // Determine which direction to move first
+        const firstMove = (['jump-start', 'jump-both'].includes(jumpterm)) ? 'y' : 'x';
+
+        // Determine the distance to move for each step
+        const stepSize = size / count;
+        const stepSizeMinusHalf = size / (count - 1);
+        const stepSizePlusHalf = size / (count + 1);
+
+        // Start the path
+        let path = `M${offset.x},${offset.y}`;
+
+        for (let s = 0; s < count; s++) {
+            let yStepMove;
+            if (removeHalfStep && firstMove === 'x') { yStepMove = stepSizeMinusHalf; }
+            else if (addHalfStep && firstMove === 'y') { yStepMove = stepSizePlusHalf; }
+            else  { yStepMove = stepSize; }
+
+            const isLastStep = (s === (count-1));
+            const goRight = `l${stepSize},0`;
+            const goUp = `l0,${yStepMove * -1}`; // Since the path is drawn from the bottom-left, we need to use a negative value to move upwards
+            let moves = [goRight, goUp];
+            if (firstMove === 'y') { moves.reverse(); } // First goUp, then goRight
+            if (addHalfStep && isLastStep) { moves.push(goUp); } // Add last half-step
+            if (removeHalfStep && isLastStep) { moves[1] = ''; } // Remove last half-step
+            path += ` ${moves.join(' ')}`;
+        }
+
+        return path;
+    }
+
+    // Keywords to easing/steps mapping
     interface Key2Ease {
         [key: string]: string;
     }
 
-    let keyword2easing: Key2Ease = {
+    // Keyword to cubic-bezier()
+    const keyword2easing: Key2Ease = {
         'linear': '0,0,1,1',
         'ease': '0.25,0.1,0.25,1',
         'ease-in': '0.42,0,1,1',
@@ -91,8 +144,20 @@ export function activate(context: vscode.ExtensionContext) {
         'ease-in-out': '0.42,0,0.58,1'
     };
 
-    /** Returns code for the cubic-bezier preview (as an SVG image). */
-    function getSvgOutput(easingFunctionInput: string) {
+    // Keyword to steps()
+    const keyword2jump: Key2Ease = {
+        'step-start': '1,jump-start',
+        'step-end': '1,jump-end'
+    };
+
+    /**
+     * Returns code for the cubic-bezier preview (as an SVG image).
+     * 
+     * @param {string} easingFunctionInput The easing function or keyword to parse
+     * 
+     * @return {string} The SVG element with the animation and the cuve/steps preview
+     */
+    function getSvgOutput(easingFunctionInput: string): string {
         const bg = defaultBackground;
         const color = defaultColor;
         const svgW = 480;
@@ -105,19 +170,43 @@ export function activate(context: vscode.ExtensionContext) {
         const curvePreviewHandleRadius = curvePreviewBoxSize * .05;
         const curvePreviewBoxOffsetX = animationSpanX + curvePreviewBoxSize / 2;
         const curvePreviewBoxOffsetY = (svgH - curvePreviewBoxSize) / 2;
+        const easingFunction = easingFunctionInput.toLowerCase().trim();
+        const pathStart = { x: curvePreviewBoxOffsetX, y: curvePreviewBoxOffsetY + curvePreviewBoxSize };
+        const isSteps = (easingFunction.indexOf('step-') > -1 || easingFunctionInput.indexOf('steps(') > -1);
+        let svgDrawing;
 
-        let easingFunction = easingFunctionInput.toLowerCase().trim().replace(';','').replace(':',''); // Quick and dirty… sorry
-        let curvePoints = keyword2easing[easingFunction] || easingFunction.replace('cubic-bezier(', ''); // Sorryyyyy
-        let curve = curvePoints.split(',');
-        let factor = curvePreviewBoxSize;
-        let points = curve.map(n => parseFloat(n) * factor);
-        let curveX1 = points[0] + curvePreviewBoxOffsetX;
-        let curveY1 = factor - points[1] + curvePreviewBoxOffsetY;
-        let curveX2 = points[2] + curvePreviewBoxOffsetX;
-        let curveY2 = factor - points[3] + curvePreviewBoxOffsetY;
-        let curvePath = `M${curvePreviewBoxOffsetX},${curvePreviewBoxOffsetY + curvePreviewBoxSize} C${curveX1},${curveY1} ${curveX2},${curveY2} ${curvePreviewBoxOffsetX + curvePreviewBoxSize},${curvePreviewBoxOffsetY}`;
+        if (isSteps) {
+            let jumps = keyword2jump[easingFunction] || easingFunction.replace('steps(', '').replace(')', ''); // Not the cleanest…
+            let jumpData = jumps.split(',');
+            let jumpCount = parseInt(jumpData[0], 10);
+            let jumpType = (jumpData[1] || 'jump-end').trim();
+            if (jumpType === 'start') { jumpType = 'jump-start'; }
+            if (jumpType === 'end') { jumpType = 'jump-end'; }
+            let jumpPath = getJumpPath(jumpCount, jumpType, pathStart, curvePreviewBoxSize);
+
+            svgDrawing = `<path class="st0" d="${jumpPath}"/>`;
+        }
+        else {
+            let curvePoints = keyword2easing[easingFunction] || easingFunction.replace('cubic-bezier(', '').replace(')', ''); // Not the cleanest…
+            let curve = curvePoints.split(',');
+            let factor = curvePreviewBoxSize;
+            let points = curve.map(n => parseFloat(n) * factor);
+            let curveX1 = points[0] + curvePreviewBoxOffsetX;
+            let curveY1 = factor - points[1] + curvePreviewBoxOffsetY;
+            let curveX2 = points[2] + curvePreviewBoxOffsetX;
+            let curveY2 = factor - points[3] + curvePreviewBoxOffsetY;
+            let curvePath = `M${pathStart.x},${pathStart.y} C${curveX1},${curveY1} ${curveX2},${curveY2} ${curvePreviewBoxOffsetX + curvePreviewBoxSize},${curvePreviewBoxOffsetY}`;
+
+            svgDrawing = `<line class="st0" x1="${curvePreviewBoxOffsetX}" y1="${curvePreviewBoxOffsetY + curvePreviewBoxSize}" x2="${curveX1}" y2="${curveY1}"/>
+            <line class="st0" x1="${curveX2}" y1="${curveY2}" x2="${curvePreviewBoxOffsetX + curvePreviewBoxSize}" y2="${curvePreviewBoxOffsetY}"/>
+
+            <circle class="st1" cx="${curveX1}" cy="${curveY1}" r="${curvePreviewHandleRadius}"/>
+            <circle class="st1" cx="${curveX2}" cy="${curveY2}" r="${curvePreviewHandleRadius}"/>
+
+            <path class="st0" d="${curvePath}" />`;
+        }
         
-        let markup = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 ${svgW} ${svgH}" style="enable-background:new 0 0 ${svgW} ${svgH};" width="${svgW}px" height="${svgH}px" xml:space="preserve">
+        let markup = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 ${svgW} ${svgH}" width="${svgW}px" height="${svgH}px">
             <style type="text/css">
                 svg {
                     background-color: ${bg};
@@ -170,13 +259,7 @@ export function activate(context: vscode.ExtensionContext) {
             <line class="st3" x1="${curvePreviewBoxOffsetX + curvePreviewBoxSize*.5}" x2="${curvePreviewBoxOffsetX + curvePreviewBoxSize*.5}" y1="${curvePreviewBoxOffsetY}" y2="${curvePreviewBoxOffsetY + curvePreviewBoxSize}"/>
             <line class="st3" x1="${curvePreviewBoxOffsetX + curvePreviewBoxSize*.75}" x2="${curvePreviewBoxOffsetX + curvePreviewBoxSize*.75}" y1="${curvePreviewBoxOffsetY}" y2="${curvePreviewBoxOffsetY + curvePreviewBoxSize}"/>
             
-            <line class="st0" x1="${curvePreviewBoxOffsetX}" y1="${curvePreviewBoxOffsetY + curvePreviewBoxSize}" x2="${curveX1}" y2="${curveY1}"/>
-            <line class="st0" x1="${curveX2}" y1="${curveY2}" x2="${curvePreviewBoxOffsetX + curvePreviewBoxSize}" y2="${curvePreviewBoxOffsetY}"/>
-
-            <circle class="st1" cx="${curveX1}" cy="${curveY1}" r="${curvePreviewHandleRadius}"/>
-            <circle class="st1" cx="${curveX2}" cy="${curveY2}" r="${curvePreviewHandleRadius}"/>
-
-            <path class="st0" d="${curvePath}" />
+            ${svgDrawing}
 
             <line class="st3" x1="${squareMargin}" y1="0" x2="${squareMargin}" y2="${svgH}"/>
             <line class="st3" x1="${(animationSpanX - squareMargin)*.25}" y1="0" x2="${(animationSpanX - squareMargin)*.25}" y2="${svgH}"/>
@@ -195,8 +278,15 @@ export function activate(context: vscode.ExtensionContext) {
         return markup;
     }
 
-    /** Return the SVG formatted for URI use. */
-    function uriSvgOutput(svgContent: string, type: string = 'utf8') {
+    /**
+     * Return the SVG formatted for URI use.
+     * 
+     * @param {string} svgContent The SVG to output
+     * @param {string} type Optional. The encoding for the output. Can be either `utf8` or `base64`. Defaults to `utf8`.
+     * 
+     * @return Encoded SVG markup output
+     */
+    function uriSvgOutput(svgContent: string, type: string = 'utf8'): string {
         var input = svgContent.split("\n").map(i => i.trim()).join('');
 
         if (type === 'base64') {
@@ -207,9 +297,8 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     const cubicBezierDecorationType = vscode.window.createTextEditorDecorationType({
-        textDecoration: 'underline',
+        textDecoration: 'underline dotted',
         before: {
-            // contentText: '📈',
             contentIconPath: path.join(context.extensionPath, "src/inline.svg"),
             
             height: '0.8em',
@@ -250,7 +339,9 @@ export function activate(context: vscode.ExtensionContext) {
 		if (!activeEditor) {
 			return;
 		}
-		const regEx = /(\:|\s)((ease(?:-in)?(?:-out)?)|(cubic-bezier\(\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*,\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*\)))(\s|,|;)/gi; // Matches any easing-function
+        
+        // Strap in, it's gonna be a long RegEx…
+		const regEx = /(\:|\s|,)((ease(?:-in)?(?:-out)?)|(cubic-bezier\(\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*,\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*\))|(step-(?:start|end))|steps\(\s*[1-9]\d*(\s*,\s*(start|end|jump-(?:start|end|both|none)))?\s*\))(\s|,|;)/gi; // Matches any easing-function
         const text = activeEditor.document.getText();
 		const cubicBeziers: vscode.DecorationOptions[] = [];
 		let match;

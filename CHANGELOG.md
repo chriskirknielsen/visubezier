@@ -1,7 +1,15 @@
 # Changelog
 All notable changes to VisuBezier will be documented in this file.
 
-## [1.3.5] - 2019-05-03
+## [1.4.0] - 2021-05-20
+### Added
+- Support for `steps()` and `step-start`/`step-end` syntax.
+
+### Changed
+- Solid underline changed to a dotted underline.
+- Comments/typings updated.
+
+## [1.3.5] - 2021-05-03
 ### Changed
 - Patch the security vulnerabilities for `url-parse`.
 
