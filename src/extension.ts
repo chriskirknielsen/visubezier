@@ -101,7 +101,7 @@ export function activate(context: vscode.ExtensionContext) {
         const removeHalfStep = (jumpterm === 'jump-none');
 
         // Determine which direction to move first
-        const firstMove = (['jump-start', 'jump-both'].includes(jumpterm)) ? 'y' : 'x';
+        const firstMove = (['jump-start', 'jump-both'].indexOf(jumpterm) > -1) ? 'y' : 'x';
 
         // Determine the distance to move for each step
         const stepSize = size / count;
@@ -339,7 +339,7 @@ export function activate(context: vscode.ExtensionContext) {
 		if (!activeEditor) {
 			return;
 		}
-        
+
         // Strap in, it's gonna be a long RegEx…
 		const regEx = /(\:|\s|,)((ease(?:-in)?(?:-out)?)|(cubic-bezier\(\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*,\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*\))|(step-(?:start|end))|steps\(\s*[1-9]\d*(\s*,\s*(start|end|jump-(?:start|end|both|none)))?\s*\))(\s|,|;)/gi; // Matches any easing-function
         const text = activeEditor.document.getText();
