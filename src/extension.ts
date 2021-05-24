@@ -79,7 +79,7 @@ export function activate(context: vscode.ExtensionContext) {
     const defaultBackground = config.get("defaultbackground", "#2d2d30");
     const defaultColor = config.get("defaultcolor", "#d7d7d7");
 
-    // Define the SVG offset object, which contains the coordinates of the starting point for the easing curve/step visualiation
+    // Define the SVG offset object, which contains the coordinates of the starting point for the easing curve/step visualisation
     interface OffsetXY {
         x: number;
         y: number;
@@ -93,7 +93,7 @@ export function activate(context: vscode.ExtensionContext) {
      * @param {OffsetXY} offset The offset coordinates `x` and `y` for the SVG viewBox
      * @param {number} size The length of a side of the square in which the easing function is painted
      * 
-     * @return {string} The `d` attribute for an SVG <path/>
+     * @return {string} The `d` attribute for an SVG `<path />` element.
      */
     function getJumpPath(count: number, jumpterm: string, offset: OffsetXY, size: number): string {
         // If there is a need to add or remove a half-step, flag it
@@ -112,10 +112,9 @@ export function activate(context: vscode.ExtensionContext) {
         let path = `M${offset.x},${offset.y}`;
 
         for (let s = 0; s < count; s++) {
-            let yStepMove;
+            let yStepMove = stepSize;
             if (removeHalfStep && firstMove === 'x') { yStepMove = stepSizeMinusHalf; }
             else if (addHalfStep && firstMove === 'y') { yStepMove = stepSizePlusHalf; }
-            else  { yStepMove = stepSize; }
 
             const isLastStep = (s === (count-1));
             const goRight = `l${stepSize},0`;
@@ -153,9 +152,9 @@ export function activate(context: vscode.ExtensionContext) {
     /**
      * Returns code for the cubic-bezier preview (as an SVG image).
      * 
-     * @param {string} easingFunctionInput The easing function or keyword to parse
+     * @param {string} easingFunctionInput The easing function or keyword to parse.
      * 
-     * @return {string} The SVG element with the animation and the cuve/steps preview
+     * @return {string} The SVG element with the animation and the curve/steps preview.
      */
     function getSvgOutput(easingFunctionInput: string): string {
         const bg = defaultBackground;
@@ -207,7 +206,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
         
         let markup = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 ${svgW} ${svgH}" width="${svgW}px" height="${svgH}px">
-            <style type="text/css">
+            <style>
                 svg {
                     background-color: ${bg};
                     color: ${color};
@@ -281,10 +280,10 @@ export function activate(context: vscode.ExtensionContext) {
     /**
      * Return the SVG formatted for URI use.
      * 
-     * @param {string} svgContent The SVG to output
-     * @param {string} type Optional. The encoding for the output. Can be either `utf8` or `base64`. Defaults to `utf8`.
+     * @param {string} svgContent The SVG to output.
+     * @param {string} [type] Optional. The encoding for the output. Can be either `utf8` or `base64`. Defaults to `utf8`.
      * 
-     * @return Encoded SVG markup output
+     * @return Encoded SVG markup output.
      */
     function uriSvgOutput(svgContent: string, type: string = 'utf8'): string {
         var input = svgContent.split("\n").map(i => i.trim()).join('');
