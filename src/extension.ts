@@ -79,7 +79,7 @@ export function activate(context: vscode.ExtensionContext) {
     const defaultBackground = config.get("defaultbackground", "#2d2d30");
     const defaultColor = config.get("defaultcolor", "#d7d7d7");
 
-    // Define the SVG offset object, which contains the coordinates of the starting point for the easing curve/step visualisation
+    /** Object with `x` and `y` properties, defining the offset coordinates to draw from in an SVG. */
     interface OffsetXY {
         x: number;
         y: number;
@@ -129,7 +129,7 @@ export function activate(context: vscode.ExtensionContext) {
         return path;
     }
 
-    // Keywords to easing/steps mapping
+    /** Keywords to easing/steps mapping. */
     interface Key2Ease {
         [key: string]: string;
     }
@@ -172,7 +172,7 @@ export function activate(context: vscode.ExtensionContext) {
         const easingFunction = easingFunctionInput.toLowerCase().trim();
         const pathStart = { x: curvePreviewBoxOffsetX, y: curvePreviewBoxOffsetY + curvePreviewBoxSize };
         const isSteps = (easingFunction.indexOf('step-') > -1 || easingFunctionInput.indexOf('steps(') > -1);
-        let svgDrawing;
+        let svgDrawing: string;
 
         if (isSteps) {
             let jumps = keyword2jump[easingFunction] || easingFunction.replace('steps(', '').replace(')', ''); // Not the cleanest…
