@@ -339,8 +339,19 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
-        // Strap in, it's gonna be a long RegEx…
-		const regEx = /(\:|\s|,)((ease(?:-in)?(?:-out)?)|(cubic-bezier\(\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*,\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*\))|(step-(?:start|end))|steps\(\s*[1-9]\d*(\s*,\s*(start|end|jump-(?:start|end|both|none)))?\s*\))(\s|,|;)/gi; // Matches any easing-function
+        // Strap in, it's gonna be a long RegExp…
+        // A: Detect a colon, a space or a comma before a timing function
+        // B: Detect easing keywords
+        // C: cubic-bezier function
+        // D: Detect a positive number for horizontal handle position
+        // E: Detect a positive or negative number for vertical handle position
+        // F: Detect a step keyword
+        // G: steps function
+        // H: Detect a non-null positive integer for steps counts
+        // I: Detect a jumpterm for the steps() function (optional)
+        // J: Detect a space, a comma or a semi-colon after a timing function
+        // Sections:       A               B                   C                      D                                 E                               D                                 E                              F            G         H                                 I                               J 
+		const regEx = /(\:|\s|,)((ease(?:-in)?(?:-out)?)|(cubic-bezier\(\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*,\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*\))|(step-(?:start|end))|steps\(\s*[1-9]\d*(\s*,\s*(start|end|jump-(?:start|end|both|none)))?\s*\))(\s|,|;)/gi; // Matches any easing function
         const text = activeEditor.document.getText();
 		const cubicBeziers: vscode.DecorationOptions[] = [];
 		let match;
