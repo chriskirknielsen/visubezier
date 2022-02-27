@@ -48,7 +48,7 @@ button {
 
 ### 1.4.0
 - Added support for `steps()` and `step-start`/`step-end` syntax.
-- Changed solid underline changed to a dotted underline.
+- Changed solid underline to a dotted underline.
 - Updated comments/typings.
 
 ### 1.3.5

@@ -79,7 +79,7 @@ export function activate(context: vscode.ExtensionContext) {
     const defaultBackground = config.get("defaultbackground", "#2d2d30");
     const defaultColor = config.get("defaultcolor", "#d7d7d7");
 
-    // Define the SVG offset object, which contains the coordinates of the starting point for the easing curve/step visualiation
+    /** Object with `x` and `y` properties, defining the offset coordinates to draw from in an SVG. */
     interface OffsetXY {
         x: number;
         y: number;
@@ -93,7 +93,7 @@ export function activate(context: vscode.ExtensionContext) {
      * @param {OffsetXY} offset The offset coordinates `x` and `y` for the SVG viewBox
      * @param {number} size The length of a side of the square in which the easing function is painted
      * 
-     * @return {string} The `d` attribute for an SVG <path/>
+     * @return {string} The `d` attribute for an SVG `<path />` element.
      */
     function getJumpPath(count: number, jumpterm: string, offset: OffsetXY, size: number): string {
         // If there is a need to add or remove a half-step, flag it
@@ -112,10 +112,9 @@ export function activate(context: vscode.ExtensionContext) {
         let path = `M${offset.x},${offset.y}`;
 
         for (let s = 0; s < count; s++) {
-            let yStepMove;
+            let yStepMove = stepSize;
             if (removeHalfStep && firstMove === 'x') { yStepMove = stepSizeMinusHalf; }
             else if (addHalfStep && firstMove === 'y') { yStepMove = stepSizePlusHalf; }
-            else  { yStepMove = stepSize; }
 
             const isLastStep = (s === (count-1));
             const goRight = `l${stepSize},0`;
@@ -130,7 +129,7 @@ export function activate(context: vscode.ExtensionContext) {
         return path;
     }
 
-    // Keywords to easing/steps mapping
+    /** Keywords to easing/steps mapping. */
     interface Key2Ease {
         [key: string]: string;
     }
@@ -153,9 +152,9 @@ export function activate(context: vscode.ExtensionContext) {
     /**
      * Returns code for the cubic-bezier preview (as an SVG image).
      * 
-     * @param {string} easingFunctionInput The easing function or keyword to parse
+     * @param {string} easingFunctionInput The easing function or keyword to parse.
      * 
-     * @return {string} The SVG element with the animation and the cuve/steps preview
+     * @return {string} The SVG element with the animation and the curve/steps preview.
      */
     function getSvgOutput(easingFunctionInput: string): string {
         const bg = defaultBackground;
@@ -173,7 +172,7 @@ export function activate(context: vscode.ExtensionContext) {
         const easingFunction = easingFunctionInput.toLowerCase().trim();
         const pathStart = { x: curvePreviewBoxOffsetX, y: curvePreviewBoxOffsetY + curvePreviewBoxSize };
         const isSteps = (easingFunction.indexOf('step-') > -1 || easingFunctionInput.indexOf('steps(') > -1);
-        let svgDrawing;
+        let svgDrawing: string;
 
         if (isSteps) {
             let jumps = keyword2jump[easingFunction] || easingFunction.replace('steps(', '').replace(')', ''); // Not the cleanest…
@@ -207,7 +206,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
         
         let markup = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 ${svgW} ${svgH}" width="${svgW}px" height="${svgH}px">
-            <style type="text/css">
+            <style>
                 svg {
                     background-color: ${bg};
                     color: ${color};
@@ -281,10 +280,10 @@ export function activate(context: vscode.ExtensionContext) {
     /**
      * Return the SVG formatted for URI use.
      * 
-     * @param {string} svgContent The SVG to output
-     * @param {string} type Optional. The encoding for the output. Can be either `utf8` or `base64`. Defaults to `utf8`.
+     * @param {string} svgContent The SVG to output.
+     * @param {string} [type] Optional. The encoding for the output. Can be either `utf8` or `base64`. Defaults to `utf8`.
      * 
-     * @return Encoded SVG markup output
+     * @return Encoded SVG markup output.
      */
     function uriSvgOutput(svgContent: string, type: string = 'utf8'): string {
         var input = svgContent.split("\n").map(i => i.trim()).join('');
@@ -340,8 +339,19 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
-        // Strap in, it's gonna be a long RegEx…
-		const regEx = /(\:|\s|,)((ease(?:-in)?(?:-out)?)|(cubic-bezier\(\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*,\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*\))|(step-(?:start|end))|steps\(\s*[1-9]\d*(\s*,\s*(start|end|jump-(?:start|end|both|none)))?\s*\))(\s|,|;)/gi; // Matches any easing-function
+        // Strap in, it's gonna be a long RegExp…
+        // A: Detect a colon, a space or a comma before a timing function
+        // B: Detect easing keywords
+        // C: cubic-bezier function
+        // D: Detect a positive number for horizontal handle position
+        // E: Detect a positive or negative number for vertical handle position
+        // F: Detect a step keyword
+        // G: steps function
+        // H: Detect a non-null positive integer for steps counts
+        // I: Detect a jumpterm for the steps() function (optional)
+        // J: Detect a space, a comma or a semi-colon after a timing function
+        // Sections:       A               B                   C                      D                                 E                               D                                 E                              F            G         H                                 I                               J 
+		const regEx = /(\:|\s|,)((ease(?:-in)?(?:-out)?)|(cubic-bezier\(\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*,\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*\))|(step-(?:start|end))|steps\(\s*[1-9]\d*(\s*,\s*(start|end|jump-(?:start|end|both|none)))?\s*\))(\s|,|;)/gi; // Matches any easing function
         const text = activeEditor.document.getText();
 		const cubicBeziers: vscode.DecorationOptions[] = [];
 		let match;
