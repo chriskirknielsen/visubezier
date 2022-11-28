@@ -6,10 +6,10 @@ export function activate(context: vscode.ExtensionContext) {
     const Base64 = { // Source: http://www.webtoolkit.info/javascript-base64.html
 
         // private property
-        _keyStr : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
+        _keyStr: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
         
         // public method for encoding
-        encode : function (input: string) {
+        encode: function (input: string) {
             var output = "";
             var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
             var i = 0;
@@ -43,7 +43,7 @@ export function activate(context: vscode.ExtensionContext) {
         },
         
         // private method for UTF-8 encoding
-        _utf8_encode : function (string: string) {
+        _utf8_encode: function (string: string) {
             string = string.replace(/\r\n/g,"\n");
             var utftext = "";
         
@@ -78,8 +78,9 @@ export function activate(context: vscode.ExtensionContext) {
     const defaultDuration = config.get("defaultduration", "1s");
     const defaultBackground = config.get("defaultbackground", "#2d2d30");
     const defaultColor = config.get("defaultcolor", "#d7d7d7");
+	const defaultLanguages = config.get('defaultlanguages', ['css', 'sass', 'scss', 'less', 'postcss', 'stylus', 'xml', 'svg']);
 
-    /** Object with `x` and `y` properties, defining the offset coordinates to draw from in an SVG. */
+    /** Object with `x` and `y` properties, defining the offset coordinates to draw from inside an SVG. */
     interface OffsetXY {
         x: number;
         y: number;
@@ -101,7 +102,7 @@ export function activate(context: vscode.ExtensionContext) {
         const removeHalfStep = (jumpterm === 'jump-none');
 
         // Determine which direction to move first
-        const firstMove = (['jump-start', 'jump-both'].indexOf(jumpterm) > -1) ? 'y' : 'x';
+        const firstMove = (['jump-start', 'jump-both'].includes(jumpterm)) ? 'y' : 'x';
 
         // Determine the distance to move for each step
         const stepSize = size / count;
@@ -128,6 +129,16 @@ export function activate(context: vscode.ExtensionContext) {
 
         return path;
     }
+
+	/**
+	 * Check if the editor's document language is part of the config's list of languages to decorate.
+	 * @param {vscode.TextEditor} editor VS Code Editor instance.
+	 * @returns {Boolean} Whether to decorate the document or not.
+	 */
+	function shouldDocumentBeDecorated(editor) {
+		const docLang = editor.hasOwnProperty('document') && editor.document.hasOwnProperty('languageId') ? editor.document.languageId : '';
+		return docLang && defaultLanguages.includes(docLang);
+	}
 
     /** Keywords to easing/steps mapping. */
     interface Key2Ease {
@@ -171,7 +182,7 @@ export function activate(context: vscode.ExtensionContext) {
         const curvePreviewBoxOffsetY = (svgH - curvePreviewBoxSize) / 2;
         const easingFunction = easingFunctionInput.toLowerCase().trim();
         const pathStart = { x: curvePreviewBoxOffsetX, y: curvePreviewBoxOffsetY + curvePreviewBoxSize };
-        const isSteps = (easingFunction.indexOf('step-') > -1 || easingFunctionInput.indexOf('steps(') > -1);
+        const isSteps = (easingFunction.includes('step-') || easingFunctionInput.includes('steps('));
         let svgDrawing: string;
 
         if (isSteps) {
@@ -314,7 +325,10 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.window.onDidChangeActiveTextEditor(editor => {
 		activeEditor = editor;
 		if (editor) {
-			triggerUpdateDecorations();
+			const shouldDecorate = shouldDocumentBeDecorated(editor);
+			if (shouldDecorate) {
+				triggerUpdateDecorations();
+			}
 		}
 	}, null, context.subscriptions);
 
