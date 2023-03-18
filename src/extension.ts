@@ -364,8 +364,8 @@ export function activate(context: vscode.ExtensionContext) {
         // H: Detect a non-null positive integer for steps counts
         // I: Detect a jumpterm for the steps() function (optional)
         // J: Detect a space, a comma or a semi-colon after a timing function
-        // Sections:       A               B                   C                      D                                 E                               D                                 E                              F            G         H                                 I                               J 
-		const regEx = /(\:|\s|,)((ease(?:-in)?(?:-out)?)|(cubic-bezier\(\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*,\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*\))|(step-(?:start|end))|steps\(\s*[1-9]\d*(\s*,\s*(start|end|jump-(?:start|end|both|none)))?\s*\))(\s|,|;)/gi; // Matches any easing function
+        // Sections:       A                   B                   C                      D                                 E                               D                                 E                              F            G         H                                 I                               J 
+		const regEx = /(\:|\s|,|"|')((ease(?:-in)?(?:-out)?)|(cubic-bezier\(\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*,\s*((?:(?:\d?(?:\.\d+))|\d))\s*,\s*(-?(?:(?:\d?(?:\.\d+))|\d))\s*\))|(step-(?:start|end))|steps\(\s*[1-9]\d*(\s*,\s*(start|end|jump-(?:start|end|both|none)))?\s*\))(\s|,|;|"|')/gi; // Matches any easing function
         const text = activeEditor.document.getText();
 		const cubicBeziers: vscode.DecorationOptions[] = [];
 		let match;
