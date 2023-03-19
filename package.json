@@ -2,11 +2,11 @@
 	"name": "visubezier",
 	"displayName": "VisuBezier (CSS Easing Preview)",
 	"description": "Provides a preview when hovering CSS easing functions in VS Code.",
-	"version": "1.5.0",
+	"version": "1.5.1",
 	"publisher": "chriskirknielsen",
 	"icon": "visubezier.png",
 	"engines": {
-		"vscode": "^1.26.0"
+		"vscode": "^1.30.0"
 	},
 	"repository": {
 		"type": "git",
@@ -73,14 +73,16 @@
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
-		"postinstall": "node ./node_modules/vscode/bin/install"
+		"watch": "tsc -watch -p ./"
 	},
 	"devDependencies": {
 		"@types/mocha": "^2.2.42",
 		"@types/node": "^8.10.25",
+		"@types/vscode": "^1.76.0",
+		"@vscode/test-electron": "^2.3.0",
+		"glob": "^9.3.0",
+		"mocha": "^10.2.0",
 		"tslint": "^5.8.0",
-		"typescript": "^2.6.1",
-		"vscode": "^1.1.37"
+		"typescript": "^2.6.1"
 	}
 }
