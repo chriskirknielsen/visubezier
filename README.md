@@ -36,7 +36,9 @@ button {
 	transition-timing-function: steps(2, jump-end);
 	transition-timing-function: step-start;
 	transition-timing-function: step-end;
-	transition-timing-function: ease, steps(3), cubic-bezier(1, 0, 0, 1);
+	transition-timing-function: linear(0, 0.25 25% 75%, 1);
+	transition-timing-function: linear(0, 0.063, 0.25, 0.563, 1 36.4%, 0.812, 0.75, 0.813, 1 72.7%, 0.953, 0.938, 0.953, 1 90.9%, 0.984, 1 100% 100%);
+	transition-timing-function: ease, steps(3), cubic-bezier(1, 0, 0, 1), linear(0.25 50%, 0.5 75%);
 }
 ```
 
@@ -46,6 +48,11 @@ button {
 -   Points with negative values can cause the animation to fall out of the preview area.
 
 ## Release Notes
+
+### 1.6.0
+
+-   Added support for [`linear()`](https://jakearchibald.github.io/csswg-drafts/css-easing-2/Overview.html#the-linear-easing-function) syntax. Animation preview is not yet implemented in VS Code, but the SVG graph is correctly depicted (based on my interpretation of the spec, which I hope to be correct).
+-   Updated the extension's package to patch vulnerabilities.
 
 ### 1.5.0
 

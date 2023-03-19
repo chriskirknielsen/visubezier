@@ -2,6 +2,11 @@
 
 All notable changes to VisuBezier will be documented in this file.
 
+### 1.6.0 - 2023-03-19
+
+-   Added support for [`linear()`](https://jakearchibald.github.io/csswg-drafts/css-easing-2/Overview.html#the-linear-easing-function) easing functions. Animation preview is not yet implemented in VS Code, but the SVG graph is correctly depicted (based on my interpretation of the spec, which I hope to be correct).
+-   Updated the extension's package to patch vulnerabilities.
+
 ### [1.5.0] - 2022-12-01
 
 ### Added
