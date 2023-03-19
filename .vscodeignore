@@ -5,6 +5,7 @@ out/**/*.map
 src/**
 !src/*.svg
 .gitignore
+**/*.ts
 tsconfig.json
 vsc-extension-quickstart.md
 tslint.json
