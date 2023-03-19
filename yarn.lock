@@ -17,7 +17,7 @@
   "resolved" "https://registry.npmjs.org/@types/node/-/node-8.10.29.tgz"
   "version" "8.10.29"
 
-"@types/vscode@^1.30.0":
+"@types/vscode@^1.76.0":
   "integrity" "sha512-CQcY3+Fe5hNewHnOEAVYj4dd1do/QHliXaknAEYSXx2KEHUzFibDZSKptCon+HPgK55xx20pR+PBJjf0MomnBA=="
   "resolved" "https://registry.npmjs.org/@types/vscode/-/vscode-1.76.0.tgz"
   "version" "1.76.0"
