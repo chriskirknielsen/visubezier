@@ -82,7 +82,7 @@ export function activate(context: vscode.ExtensionContext) {
 	/** Object with the input and output properties, defining a linear function's stop. */
 	interface LinearStop {
 		input: number;
-		output: number;
+		output: number | null;
 	}
 
 	/**
@@ -181,9 +181,9 @@ export function activate(context: vscode.ExtensionContext) {
 	 * @param {Number} max The maximum value to return.
 	 * @return {Number} The clamped number.
 	 */
-	function clamp(number, min = 0, max = 1) {
-		return Math.min(max, Math.max(min, number));
-	}
+	// function clamp(number, min = 0, max = 1) {
+	// 	return Math.min(max, Math.max(min, number));
+	// }
 
 	/**
 	 * Draws the linear stops path.
@@ -205,16 +205,15 @@ export function activate(context: vscode.ExtensionContext) {
 			const value = parseFloat(stopData[0]);
 
 			if (stopData.length == 1) {
-				if (value <= 0 || value >= 1) {
-					return stopsNormalized.push({ input: value, output: clamp(value, 0, 1) });
-				}
-
+				// Provide an undefined output so it can be calculated based on context
 				hasImplicitPositions = true;
-				return stopsNormalized.push({ input: value, output: -1 });
+				return stopsNormalized.push({ input: value, output: null });
 			} else if (stopData.length == 2) {
+				// Set a single point
 				const x = percentToDecimal(stopData[1]);
 				return stopsNormalized.push({ input: value, output: x });
 			} else if (stopData.length == 3) {
+				// Draw a flat line if two percentages are provided for a single input
 				const x1 = percentToDecimal(stopData[1]);
 				const x2 = percentToDecimal(stopData[2]);
 				stopsNormalized.push({ input: value, output: x1 });
@@ -223,8 +222,26 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		});
 
-		// Ensure the stop list ends with a 1:100% value
-		if (stopsNormalized[stopsNormalized.length - 1].input < 1) {
+		let firstStop = stopsNormalized[0];
+		let lastStop = stopsNormalized[stopsNormalized.length - 1];
+
+		// If the first value has no output, force it to start at 0
+		if (firstStop.output === null) {
+			firstStop.output = 0;
+		}
+
+		// Ensure the stop list starts with a 0:0% pair if the first value is not 0
+		if (firstStop.input > 1 && [0, null].indexOf(firstStop.output) === -1) {
+			stopsNormalized.unshift({ input: 0, output: 0 });
+		}
+
+		// If the last value has no output, force it to end at 1
+		if (lastStop.output === null) {
+			lastStop.output = 1;
+		}
+
+		// Ensure the stop list ends with a 1:100% pair if the last value is not 1
+		if (lastStop.input !== 1) {
 			stopsNormalized.push({ input: 1, output: 1 });
 		}
 
@@ -234,14 +251,14 @@ export function activate(context: vscode.ExtensionContext) {
 			const stopCount = stopsNormalized.length;
 			const reversedStops = JSON.parse(JSON.stringify(stopsNormalized)).reverse(); // structuredClone simply deadlocked this thing, so gross and old hack it is
 			stopsNormalizedExplicit = stopsNormalized.map((stop, index) => {
-				if (stop.output === -1) {
-					// If the stop output is "undefined" (===-1), calculate its implicit position based on other available values
-					const previousExplicitStopIndex = reversedStops.slice(stopCount - index).findIndex((s) => s.output !== -1); // Find the first explicit index before the current stop (findLastIndex is not allowed so I shamefully resorted to this)
+				if (stop.output === null) {
+					// If the stop output is null, calculate its implicit position based on other available values
+					const previousExplicitStopIndex = reversedStops.slice(stopCount - index).findIndex((s) => s.output !== null); // Find the first explicit index before the current stop (findLastIndex is not allowed so I shamefully resorted to this)
 					const previousExplicitStop = reversedStops[previousExplicitStopIndex + stopCount - index];
 					const previousExplicitStopIndexUnreversed = -1 + (previousExplicitStopIndex - index) * -1;
 					const previousExplicitOutput = previousExplicitStop.output;
 
-					const nextExplicitStopIndex = stopsNormalized.slice(index + 1).findIndex((s) => s.output !== -1) + index + 1; // Find the first explicit input after the current stop
+					const nextExplicitStopIndex = stopsNormalized.slice(index + 1).findIndex((s) => s.output !== null) + index + 1; // Find the first explicit input after the current stop
 					const nextExplicitStop = stopsNormalized[nextExplicitStopIndex];
 					const nextExplicitStopOutput = nextExplicitStop.output;
 
@@ -257,7 +274,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
 		stopsNormalizedExplicit
-			.filter((stop) => stop.input >= 0 && stop.input <= 1 && stop.output >= 0 && stop.output <= 1)
+			.filter((stop) => stop.output >= 0 && stop.output <= 1)
 			.forEach((stop) => {
 				const x = stop.output * size;
 				const y = stop.input * size;
@@ -528,15 +545,15 @@ export function activate(context: vscode.ExtensionContext) {
 		// Detect easing keywords
 		const regExKeywords = /linear|(ease(?:-in)?(?:-out)?)|(step-(?:start|end))/;
 		// linear function: detect a linear stop list (N %? %?,)
-		const regExLinearFn = /linear\(\s*((?:0?(?:\.\d+)?|1)+(?:\s+(?:0?(?:\.\d+)?|1)+)?(?:\s+(?:(?:\d{0,2}(?:\.\d+)?|100)%)){0,2}\s?,?\s?)+\s*\)/i;
-		const regExCubicBezierX = /(?:0?(?:\.\d+)?)|1/; // X-coordinate within [0;1]
-		const regExCubicBezierY = /-?(?:(?:\d?(?:\.\d+))|\d+)/; // Y-coodinate within [-inf;+inf]
+		const regExLinearFn = /(linear\(\s*((?:-?0?(?:\.[0-9]+)?|1)+(?:\s+(?:-?0?(?:\.[0-9]+)?|1)+)?(?:\s+(?:(?:[0-9]{0,2}(?:\.[0-9]+)?|100)%)){0,2}\s?,?\s?)+\s*\))/;
+		const regExCubicBezierX = /(?:0?(?:\.[0-9]+)?)|1/; // X-coordinate within [0;1]
+		const regExCubicBezierY = /-?(?:(?:[0-9]?(?:\.[0-9]+))|\d+)/; // Y-coodinate within [-inf;+inf]
 		// cubic-bezier function: detect a positive number between 0 and 1 for horizontal handle position, detect a positive or negative number for vertical handle position
 		const regExCubicBezier = new RegExp(
 			`(cubic-bezier\\\(\\\s*(${regExCubicBezierX.source})\\\s*,\\\s*(${regExCubicBezierY.source})\\\s*,\\\s*(${regExCubicBezierX.source})\\\s*,\\\s*(${regExCubicBezierY.source})\\\s*\\\))`
 		);
 		// steps function: detect a non-null positive integer for steps counts, detect a jumpterm for the steps() function (optional)
-		const regExSteps = /steps\(\s*[1-9]\d*(\s*,\s*(start|end|jump-(?:start|end|both|none)))?\s*\)/;
+		const regExSteps = /(steps\(\s*[1-9][0-9]*(\s*,\s*(start|end|jump-(?:start|end|both|none)))?\s*\))/;
 		const regExTypes = [regExKeywords, regExCubicBezier, regExLinearFn, regExSteps].map((regex) => regex.source).join('|');
 		// Detect a space, a comma or a semi-colon after a timing function
 		const regExAfter = /(\s|,|;|"|')/;
@@ -544,7 +561,6 @@ export function activate(context: vscode.ExtensionContext) {
 		const regExFlags = 'gi';
 		// Build the final regular expression
 		const regEx = new RegExp(regExBefore.source + '(' + regExTypes + ')' + regExAfter.source, regExFlags);
-
 		const text = activeEditor.document.getText();
 		const cubicBeziers: vscode.DecorationOptions[] = [];
 		let match;
