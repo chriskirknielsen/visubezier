@@ -12,11 +12,11 @@ Hover over any CSS easing function to get a preview of the animation, comparing 
 
 This extension has a few settings:
 
--   `visubezier.defaulteasingfunction`: Override the default comparison easing function with any valid easing function expressed as a keyword or a `cubic-bezier()` function (default: `linear`).
--   `visubezier.defaultduration`: Override the duration of the animation with any valid duration expressed as `0.5s` or `500ms` (default: `1s`).
--   `visubezier.defaultbackground`: Override the background color for the preview area (default: `#2d2d30`).
--   `visubezier.defaultcolor`: Override the foreground color for the preview elements (default: `#d7d7d7`).
--   `visubezier.defaultlanguages`: Override the list of languages for which you want to activate the preview. (default: `["css","sass","scss","less","postcss","stylus","xml","svg"]`).
+- `visubezier.defaulteasingfunction`: Override the default comparison easing function with any valid easing function expressed as a keyword or a `cubic-bezier()` function (default: `linear`).
+- `visubezier.defaultduration`: Override the duration of the animation with any valid duration expressed as `0.5s` or `500ms` (default: `1s`).
+- `visubezier.defaultbackground`: Override the background color for the preview area (default: `#2d2d30`).
+- `visubezier.defaultcolor`: Override the foreground color for the preview elements (default: `#d7d7d7`).
+- `visubezier.defaultlanguages`: Override the list of languages for which you want to activate the preview. (default: `["css","sass","scss","less","postcss","stylus","xml","svg"]`).
 
 ## Post-Install Sample
 
@@ -44,71 +44,75 @@ button {
 
 ## Known Issues
 
--   Easing functions (e.g. `cubic-bezier(...)` and `linear(...)`) containing any values other than numbers are currently ignored (e.g. `calc()` or `var()`).
--   Points with negative values can cause the animation to fall out of the preview area.
--   `linear()` easing function animation preview falls back to rendering as a classic `ease` easing due to VS Code's internal rendering engine not handling the function notation (as of 2023-09-02).
+- Easing functions (e.g. `cubic-bezier(...)` and `linear(...)`) containing any values other than numbers are currently ignored (e.g. `calc()` or `var()`).
+- Points with negative values can cause the animation to fall out of the preview area.
+- `linear()` easing function animation preview falls back to rendering as a classic `ease` easing due to VS Code's internal rendering engine not handling the function notation (as of 2023-09-02).
 
 ## Release Notes
 
+### 1.6.2
+
+- Patched a few package vulnerabilities.
+
 ### 1.6.1
 
--   Fixed parsing of `linear()` with negative values, and rendering of `linear()` with a value greater than `1` which was previously clamped to `1`.
+- Fixed parsing of `linear()` with negative values, and rendering of `linear()` with a value greater than `1` which was previously clamped to `1`.
 
 ### 1.6.0
 
--   Added support for [`linear()` syntax](https://jakearchibald.github.io/csswg-drafts/css-easing-2/Overview.html#the-linear-easing-function). Animation preview is not yet implemented in VS Code, but the SVG graph is correctly depicted (based on my interpretation of the spec, which I hope to be correct).
--   Added a licence file.
--   Updated the underlying VS Code Extension required files to run with more modern code (Node 18, TypeScript 5, VS Code 1.76+, and other things I hardly understand).
--   Updated the extension's package to patch vulnerabilities.
+- Added support for [`linear()` syntax](https://jakearchibald.github.io/csswg-drafts/css-easing-2/Overview.html#the-linear-easing-function). Animation preview is not yet implemented in VS Code, but the SVG graph is correctly depicted (based on my interpretation of the spec, which I hope to be correct).
+- Added a licence file.
+- Updated the underlying VS Code Extension required files to run with more modern code (Node 18, TypeScript 5, VS Code 1.76+, and other things I hardly understand).
+- Updated the extension's package to patch vulnerabilities.
 
 ### 1.5.0
 
--   Added a `defaultlanguages` configuration option to only run the extension in relevant languages, overridable by the user if needed. (thanks to [@robole](https://github.com/robole) for the suggestion and to [tjx666](https://github.com/tjx666) for the example file!).
--   Patched a few package vulnerabilities.
+- Added a `defaultlanguages` configuration option to only run the extension in relevant languages, overridable by the user if needed. (thanks to [@robole](https://github.com/robole) for the suggestion and to [tjx666](https://github.com/tjx666) for the example file!).
+- Patched a few package vulnerabilities.
 
 ### 1.4.0
 
--   Added support for `steps()` and `step-start`/`step-end` syntax.
--   Changed solid underline to a dotted underline.
--   Updated comments/typings.
+- Added support for `steps()` and `step-start`/`step-end` syntax.
+- Changed solid underline to a dotted underline.
+- Updated comments/typings.
 
 ### 1.3.5
 
--   Patch the security vulnerabilities for `url-parse`.
+- Patch the security vulnerabilities for `url-parse`.
 
 ### 1.3.4
 
--   Added an icon before the timing functions that can be previewed. Updated the ignored files.
+- Added an icon before the timing functions that can be previewed. Updated the ignored files.
 
 ### 1.3.2
 
--   Fixed the `ease` mapping and allow to detect more than one function per declaration.
+- Fixed the `ease` mapping and allow to detect more than one function per declaration.
 
 ### 1.3.1
 
--   Patch the security vulnerabilities for `minimist`.
+- Patch the security vulnerabilities for `minimist`.
 
 ### 1.3.0
 
--   Fixed some greed in the detection regular expression.
+- Fixed some greed in the detection regular expression.
 
 ### 1.2.0
 
--   Updated icon and extension name
--   Patch the security vulnerabilities for `braces`, `js-yaml` and `fstream`.
+- Updated icon and extension name
+- Patch the security vulnerabilities for `braces`, `js-yaml` and `fstream`.
 
 ### 1.1.2
 
--   Patch the security vulnerabilities for `tar` and `node.extend`.
+- Patch the security vulnerabilities for `tar` and `node.extend`.
 
 ### 1.1.1
 
--   Change the detection RegExp to be less greedy and not output false positives.
+- Change the detection RegExp to be less greedy and not output false positives.
 
 ### 1.1.0
 
--   Add a preview of the Bézier curve next to the animation.
+- Add a preview of the Bézier curve next to the animation.
 
 ### 1.0.0
 
--   Initial release of VisuBezier. 🤘
+- Initial release of VisuBezier. 🤘
